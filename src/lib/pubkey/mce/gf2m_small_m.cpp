@@ -38,6 +38,65 @@ unsigned int prim_poly[MAX_EXT_DEG + 1] = {
    0210013		/* extension degree 16 */
 };
 
+std::vector<gf2m> gf_exp_table(size_t deg, gf2m prime_poly)
+   {
+   // construct the table gf_exp[i]=alpha^i
+
+   std::vector<gf2m> tab(1 << deg);
+
+   tab[0] = 1;
+   for(size_t i = 1; i < tab.size() - 1; ++i)
+      {
+      tab[i] = tab[i - 1] << 1;
+      if (tab[i - 1] & (1 << (deg-1)))
+         {
+         tab[i] ^= prime_poly;
+         }
+      }
+
+   // hack for the multiplication
+   tab[tab.size() - 1] = 1;
+   return tab;
+   }
+
+const std::vector<gf2m>& exp_table(size_t deg)
+   {
+   static std::vector<gf2m> tabs[MAX_EXT_DEG];
+
+   if(deg < 2 || deg > MAX_EXT_DEG)
+      throw std::runtime_error("GF2m_Field does not support degree " + std::to_string(deg));
+
+   if(tabs[deg].empty())
+      tabs[deg] = gf_exp_table(deg, prim_poly[deg]);
+
+   return tabs[deg];
+   }
+
+std::vector<gf2m> gf_log_table(size_t deg, const std::vector<gf2m>& exp)
+   {
+   std::vector<gf2m> tab(1 << deg);
+
+   tab[0] = (1 << deg) - 1; // log of 0 is the order
+   for (size_t i = 0; i < tab.size() ; ++i)
+      {
+      tab[exp[i]] = i;
+      }
+   return tab;
+   }
+
+const std::vector<gf2m>& log_table(size_t deg)
+   {
+   static std::vector<gf2m> tabs[MAX_EXT_DEG];
+
+   if(deg < 2 || deg > MAX_EXT_DEG)
+      throw std::runtime_error("GF2m_Field does not support degree " + std::to_string(deg));
+
+   if(tabs[deg].empty())
+      tabs[deg] = gf_log_table(deg, exp_table(deg));
+
+   return tabs[deg];
+   }
+
 }
 
 u32bit encode_gf2m(gf2m to_enc, byte* mem)
@@ -55,39 +114,11 @@ gf2m decode_gf2m(const byte* mem)
    return result;
    }
 
-// construct the table gf_exp[i]=alpha^i
-void GF2m_Field::init_exp()
-   {
-   m_gf_exp_table.resize(1 << get_extension_degree());
-
-   m_gf_exp_table[0] = 1;
-   for(size_t i = 1; i < gf_ord(); ++i)
-      {
-      m_gf_exp_table[i] = m_gf_exp_table[i - 1] << 1;
-      if (m_gf_exp_table[i - 1] & (1 << (get_extension_degree()-1)))
-         {
-         m_gf_exp_table[i] ^= prim_poly[get_extension_degree()];
-         }
-      }
-
-   // hack for the multiplication
-   m_gf_exp_table[gf_ord()] = 1;
-   }
-
-// construct the table gf_log[alpha^i]=i
-void GF2m_Field::init_log()
-   {
-   m_gf_log_table.resize(1 << get_extension_degree());
-
-   m_gf_log_table[0] = gf_ord(); // log of 0 par convention
-   for (size_t i = 0; i < gf_ord() ; ++i)
-      {
-      m_gf_log_table[m_gf_exp_table[i]] = i;
-      }
-   }
-
-
-GF2m_Field::GF2m_Field(size_t extdeg)
+GF2m_Field::GF2m_Field(size_t extdeg) : m_gf_extension_degree(extdeg),
+                                        m_gf_cardinality(1 << extdeg),
+                                        m_gf_multiplicative_order(m_gf_cardinality - 1),
+                                        m_gf_log_table(log_table(m_gf_extension_degree)),
+                                        m_gf_exp_table(exp_table(m_gf_extension_degree))
    {
    if(extdeg < 2 || extdeg > MAX_EXT_DEG)
       throw std::runtime_error("GF2m_Field does not support degree " + std::to_string(extdeg));
@@ -95,12 +126,9 @@ GF2m_Field::GF2m_Field(size_t extdeg)
    m_gf_extension_degree = extdeg;
    m_gf_cardinality = 1 << extdeg;
    m_gf_multiplicative_order = m_gf_cardinality - 1;
-
-   init_exp();
-   init_log();
    }
 
-gf2m GF2m_Field::gf_div(gf2m x, gf2m y)
+gf2m GF2m_Field::gf_div(gf2m x, gf2m y) const
    {
    s32bit sub_res = static_cast<s32bit>(m_gf_log_table[x]) - static_cast<s32bit>( m_gf_log_table[y]);
    s32bit modq_res = static_cast<s32bit>(_gf_modq_1(sub_res));
@@ -109,7 +137,7 @@ gf2m GF2m_Field::gf_div(gf2m x, gf2m y)
    }
 
 // we suppose i >= 0. Par convention 0^0 = 1
-gf2m GF2m_Field::gf_pow(gf2m x, int i)
+gf2m GF2m_Field::gf_pow(gf2m x, int i) const
    {
    if (i == 0)
       return 1;
