@@ -98,7 +98,7 @@ gf2m_decomp_rootfind_state::gf2m_decomp_rootfind_state(const polyn_gf2m & polyn,
    {
    gf2m coeff_3;
    gf2m coeff_head;
-   std::shared_ptr<gf2m_small_m::Gf2m_Field> sp_field = polyn.get_sp_field();
+   std::shared_ptr<GF2m_Field> sp_field = polyn.get_sp_field();
    int deg_sigma = polyn.get_degree();
    if(deg_sigma <= 3)
       {
@@ -196,7 +196,7 @@ void gf2m_decomp_rootfind_state::calc_next_Aij()
 
 void gf2m_decomp_rootfind_state::calc_LiK(const polyn_gf2m & sigma)
    {
-   std::shared_ptr<gf2m_small_m::Gf2m_Field> sp_field = sigma.get_sp_field();
+   std::shared_ptr<GF2m_Field> sp_field = sigma.get_sp_field();
    u32bit i, k, d;
    d = sigma.get_degree();
    for(k = 0; k < sp_field->get_extension_degree(); k++)
@@ -236,7 +236,7 @@ gf2m gf2m_decomp_rootfind_state::calc_Fxj_j_neq_0( const polyn_gf2m & sigma, gf2
    //needs the A_{ij} to compute F(x)_j
    gf2m sum = 0;
    u32bit i;
-   std::shared_ptr<gf2m_small_m::Gf2m_Field> sp_field = sigma.get_sp_field();
+   std::shared_ptr<GF2m_Field> sp_field = sigma.get_sp_field();
    gf2m xl_j_tt_5i, xl_j_tt_5,  xl_gray_tt_3;
    gf2m jl_gray;
    jl_gray = sp_field->gf_l_from_n(j_gray);

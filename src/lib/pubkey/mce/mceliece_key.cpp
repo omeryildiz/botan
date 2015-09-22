@@ -172,7 +172,7 @@ McEliece_PrivateKey::McEliece_PrivateKey(const secure_vector<byte>& key_bits)
    m_codimension = (ext_deg * t);
    m_dimension = (n - m_codimension);
 
-   std::shared_ptr<gf2m_small_m::Gf2m_Field> sp_field(new gf2m_small_m::Gf2m_Field(ext_deg));
+   std::shared_ptr<GF2m_Field> sp_field(new GF2m_Field(ext_deg));
    m_g = polyn_gf2m(g_enc, sp_field);
    if(m_g.get_degree() != static_cast<int>(t))
       {

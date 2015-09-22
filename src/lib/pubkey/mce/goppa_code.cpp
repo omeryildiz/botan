@@ -46,7 +46,7 @@ secure_vector<gf2m> goppa_decode(const polyn_gf2m & syndrom_polyn,
    u32bit code_length = Linv.size();
    u32bit t = g.get_degree();
 
-   std::shared_ptr<gf2m_small_m::Gf2m_Field> sp_field = g.get_sp_field();
+   std::shared_ptr<GF2m_Field> sp_field = g.get_sp_field();
 
    std::pair<polyn_gf2m, polyn_gf2m> h__aux = polyn_gf2m::eea_with_coefficients( syndrom_polyn, g, 1);
    polyn_gf2m & h = h__aux.first;

@@ -14,8 +14,6 @@
 
 namespace Botan {
 
-namespace gf2m_small_m {
-
 #define MAX_EXT_DEG 16
 
 namespace {
@@ -58,7 +56,7 @@ gf2m decode_gf2m(const byte* mem)
    }
 
 // construct the table gf_exp[i]=alpha^i
-void Gf2m_Field::init_exp()
+void GF2m_Field::init_exp()
    {
    m_gf_exp_table.resize(1 << get_extension_degree());
 
@@ -77,7 +75,7 @@ void Gf2m_Field::init_exp()
    }
 
 // construct the table gf_log[alpha^i]=i
-void Gf2m_Field::init_log()
+void GF2m_Field::init_log()
    {
    m_gf_log_table.resize(1 << get_extension_degree());
 
@@ -89,10 +87,10 @@ void Gf2m_Field::init_log()
    }
 
 
-Gf2m_Field::Gf2m_Field(size_t extdeg)
+GF2m_Field::GF2m_Field(size_t extdeg)
    {
    if(extdeg < 2 || extdeg > MAX_EXT_DEG)
-      throw std::runtime_error("Gf2m_Field does not support degree " + std::to_string(extdeg));
+      throw std::runtime_error("GF2m_Field does not support degree " + std::to_string(extdeg));
 
    m_gf_extension_degree = extdeg;
    m_gf_cardinality = 1 << extdeg;
@@ -102,7 +100,7 @@ Gf2m_Field::Gf2m_Field(size_t extdeg)
    init_log();
    }
 
-gf2m Gf2m_Field::gf_div(gf2m x, gf2m y)
+gf2m GF2m_Field::gf_div(gf2m x, gf2m y)
    {
    s32bit sub_res = static_cast<s32bit>(m_gf_log_table[x]) - static_cast<s32bit>( m_gf_log_table[y]);
    s32bit modq_res = static_cast<s32bit>(_gf_modq_1(sub_res));
@@ -111,7 +109,7 @@ gf2m Gf2m_Field::gf_div(gf2m x, gf2m y)
    }
 
 // we suppose i >= 0. Par convention 0^0 = 1
-gf2m Gf2m_Field::gf_pow(gf2m x, int i)
+gf2m GF2m_Field::gf_pow(gf2m x, int i)
    {
    if (i == 0)
       return 1;
@@ -128,7 +126,5 @@ gf2m Gf2m_Field::gf_pow(gf2m x, int i)
       return m_gf_exp_table[i];
       }
    }
-
-}
 
 }

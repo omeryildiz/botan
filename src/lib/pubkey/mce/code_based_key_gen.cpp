@@ -137,12 +137,12 @@ secure_vector<int> binary_matrix::row_reduced_echelon_form()
 void randomize_support(u32bit n, std::vector<gf2m> & L, RandomNumberGenerator & rng)
    {
    unsigned int i, j;
-   gf2m_small_m::gf2m tmp;
+   gf2m tmp;
 
    for (i = 0; i < n; ++i)
       {
 
-      gf2m_small_m::gf2m rnd;
+      gf2m rnd;
       rng.randomize(reinterpret_cast<byte*>(&rnd), sizeof(rnd));
       j = rnd % n; // no rejection sampling, but for useful code-based parameters with n <= 13 this seem tolerable
 
@@ -152,14 +152,14 @@ void randomize_support(u32bit n, std::vector<gf2m> & L, RandomNumberGenerator & 
       }
    }
 
-std::unique_ptr<binary_matrix> generate_R(std::vector<gf2m> &L, polyn_gf2m* g, std::shared_ptr<gf2m_small_m::Gf2m_Field> sp_field, u32bit code_length, u32bit t )
+std::unique_ptr<binary_matrix> generate_R(std::vector<gf2m> &L, polyn_gf2m* g, std::shared_ptr<GF2m_Field> sp_field, u32bit code_length, u32bit t )
    {
    //L- Support
    //t- Number of errors
    //n- Length of the Goppa code
    //m- The extension degree of the GF
    //g- The generator polynomial.
-   gf2m_small_m::gf2m x,y;
+   gf2m x,y;
    u32bit i,j,k,r,n;
    std::vector<int> Laux(code_length);
    n=code_length;
@@ -226,7 +226,7 @@ McEliece_PrivateKey generate_mceliece_key( RandomNumberGenerator & rng, u32bit e
       {
       throw Invalid_Argument("invalid McEliece parameters");
       }
-   std::shared_ptr<gf2m_small_m::Gf2m_Field> sp_field ( new Gf2m_Field(ext_deg ));
+   std::shared_ptr<GF2m_Field> sp_field ( new GF2m_Field(ext_deg ));
 
    //pick the support.........
    std::vector<gf2m> L(code_length);
