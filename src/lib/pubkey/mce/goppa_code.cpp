@@ -10,7 +10,6 @@
  */
 
 #include <botan/internal/goppa_code.h>
-#include <botan/internal/gf2m_rootfind_dcmp.h>
 #include <botan/internal/code_based_util.h>
 
 namespace Botan {
@@ -153,29 +152,26 @@ secure_vector<byte> mceliece_decrypt(
       throw Invalid_Argument("mce-decryption: wrong length of cleartext buffer");
       }
 
-
    secure_vector<u32bit> syndrome_vec(bit_size_to_32bit_size(codimension));
-   matrix_arr_mul(
-      key.get_H_coeffs(),
-      key.get_code_length(),
-      bit_size_to_32bit_size(codimension),
-      ciphertext,
-      syndrome_vec.data(), syndrome_vec.size() );
+   matrix_arr_mul(key.get_H_coeffs(),
+                  key.get_code_length(),
+                  bit_size_to_32bit_size(codimension),
+                  ciphertext,
+                  syndrome_vec.data(), syndrome_vec.size());
+
    secure_vector<byte> syndrome_byte_vec(bit_size_to_byte_size(codimension));
    u32bit syndrome_byte_vec_size = syndrome_byte_vec.size();
    for(u32bit i = 0; i < syndrome_byte_vec_size; i++)
       {
       syndrome_byte_vec[i] = syndrome_vec[i/4] >> (8* (i % 4));
       }
+
    syndrome_polyn = polyn_gf2m(t-1, syndrome_byte_vec.data(), bit_size_to_byte_size(codimension), key.get_goppa_polyn().get_sp_field());
-
-
 
    syndrome_polyn.get_degree();
    error_pos = goppa_decode(syndrome_polyn, key.get_goppa_polyn(), key.get_sqrtmod(), key.get_Linv());
 
    u32bit nb_err = error_pos.size();
-
 
    secure_vector<byte> cleartext(cleartext_len);
    copy_mem(cleartext.data(), ciphertext, cleartext_len);
@@ -191,6 +187,7 @@ secure_vector<byte> mceliece_decrypt(
          }
       cleartext[current / 8] ^= (1 << (current % 8));
       }
+
    if(unused_pt_bits)
       {
       cleartext[cleartext_len - 1] &= unused_pt_bits_mask;

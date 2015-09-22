@@ -12,12 +12,14 @@
 #ifndef BOTAN_POLYN_GF2M_H__
 #define BOTAN_POLYN_GF2M_H__
 
+#include <botan/secmem.h>
 #include <botan/gf2m_small_m.h>
-#include <botan/rng.h>
 #include <memory>
 #include <utility>
 
 namespace Botan {
+
+class RandomNumberGenerator;
 
 using namespace gf2m_small_m;
 
@@ -155,6 +157,12 @@ struct polyn_gf2m
 gf2m random_code_element(unsigned code_length, RandomNumberGenerator& rng);
 
 std::vector<polyn_gf2m> syndrome_init(polyn_gf2m const& generator, std::vector<gf2m> const& support, int n);
+
+/**
+* Find the roots of a polynomial over GF(2^m) using the method by Federenko
+* et al.
+*/
+secure_vector<gf2m> find_roots_gf2m_decomp(const polyn_gf2m & polyn, u32bit code_length);
 
 }
 

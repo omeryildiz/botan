@@ -12,6 +12,8 @@
 #include <botan/polyn_gf2m.h>
 #include <botan/internal/code_based_util.h>
 #include <botan/internal/bit_ops.h>
+#include <botan/rng.h>
+#include <botan/exceptn.h>
 
 namespace Botan {
 

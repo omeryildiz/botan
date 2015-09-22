@@ -11,6 +11,5 @@ gf2m_small_m.h
 <header:internal>
 code_based_key_gen.h
 code_based_util.h
-gf2m_rootfind_dcmp.h
 goppa_code.h
 </header:internal>
