@@ -9,10 +9,9 @@
  *
  */
 
-#include <botan/goppa_code.h>
-
-#include <botan/gf2m_rootfind_dcmp.h>
-#include <botan/code_based_util.h>
+#include <botan/internal/goppa_code.h>
+#include <botan/internal/gf2m_rootfind_dcmp.h>
+#include <botan/internal/code_based_util.h>
 
 namespace Botan {
 

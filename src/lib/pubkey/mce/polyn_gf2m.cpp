@@ -10,9 +10,7 @@
  */
 
 #include <botan/polyn_gf2m.h>
-#include <botan/gf2m_rootfind_dcmp.h>
-#include <botan/code_based_util.h>
-#include <botan/gf2m_small_m.h>
+#include <botan/internal/code_based_util.h>
 #include <botan/internal/bit_ops.h>
 
 namespace Botan {

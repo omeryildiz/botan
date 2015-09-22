@@ -10,15 +10,129 @@
  */
 
 #include <botan/internal/code_based_key_gen.h>
-#include <botan/code_based_util.h>
-#include <botan/gf2m_rootfind_dcmp.h>
-#include <botan/internal/binary_matrix.h>
+#include <botan/internal/code_based_util.h>
 #include <botan/loadstor.h>
-#include <botan/polyn_gf2m.h>
 
 namespace Botan {
 
 namespace {
+
+#define BITS_PER_U32 (8 * sizeof (u32bit))
+
+struct binary_matrix
+   {
+   public:
+      binary_matrix(u32bit m_rown, u32bit m_coln);
+
+      void row_xor(u32bit a, u32bit b);
+      secure_vector<int> row_reduced_echelon_form();
+
+      /**
+      * return the coefficient out of F_2
+      */
+      u32bit coef(u32bit i, u32bit j)
+         {
+         return (m_elem[(i) * m_rwdcnt + (j) / BITS_PER_U32] >> (j % BITS_PER_U32)) & 1;
+         };
+
+      void set_coef_to_one(u32bit i, u32bit j)
+         {
+         m_elem[(i) * m_rwdcnt + (j) / BITS_PER_U32] |= (1UL << ((j) % BITS_PER_U32)) ;
+         };
+
+      void toggle_coeff(u32bit i, u32bit j)
+         {
+         m_elem[(i) * m_rwdcnt + (j) / BITS_PER_U32] ^= (1UL << ((j) % BITS_PER_U32)) ;
+         }
+
+      void set_to_zero()
+         {
+         zeroise(m_elem);
+         }
+
+      u32bit m_rown;  // number of rows.
+      u32bit m_coln; // number of columns.
+      u32bit m_rwdcnt; // number of words in a row
+      std::vector<u32bit> m_elem;
+   };
+
+binary_matrix::binary_matrix (u32bit rown, u32bit coln)
+   {
+   m_coln = coln;
+   m_rown = rown;
+   m_rwdcnt = (1 + (m_coln - 1) / BITS_PER_U32);
+   m_elem = std::vector<u32bit>(m_rown * m_rwdcnt);
+   }
+
+void binary_matrix::row_xor(u32bit a, u32bit b)
+   {
+   u32bit i;
+   for(i=0;i<m_rwdcnt;i++)
+      {
+      m_elem[a*m_rwdcnt+i]^=m_elem[b*m_rwdcnt+i];
+      }
+   }
+
+//the matrix is reduced from LSB...(from right)
+secure_vector<int> binary_matrix::row_reduced_echelon_form()
+   {
+   u32bit i, failcnt, findrow, max=m_coln - 1;
+
+   secure_vector<int> perm(m_coln);
+   for(i=0;i<m_coln;i++)
+      {
+      perm[i]=i;//initialize permutation.
+      }
+   failcnt = 0;
+
+   for(i=0;i<m_rown;i++,max--)
+      {
+      findrow=0;
+      for(u32bit j=i;j<m_rown;j++)
+         {
+         if(coef(j,max))
+            {
+            if (i!=j)//not needed as ith row is 0 and jth row is 1.
+               row_xor(i,j);//xor to the row.(swap)?
+            findrow=1;
+            break;
+            }//largest value found (end if)
+         }
+
+      if(!findrow)//if no row with a 1 found then swap last column and the column with no 1 down.
+         {
+         perm[m_coln - m_rown - 1 - failcnt] = max;
+         failcnt++;
+         if (!max)
+            {
+            //CSEC_FREE_MEM_CHK_SET_NULL(*p_perm);
+            //CSEC_THR_RETURN();
+            perm.resize(0);
+            }
+         i--;
+         }
+      else
+         {
+         perm[i+m_coln - m_rown] = max;
+         for(u32bit j=i+1;j<m_rown;j++)//fill the column downwards with 0's
+            {
+            if(coef(j,(max)))
+               {
+               row_xor(j,i);//check the arg. order.
+               }
+            }
+
+         for(int j=i-1;j>=0;j--)//fill the column with 0's upwards too.
+            {
+            if(coef(j,(max)))
+               {
+               row_xor(j,i);
+               }
+            }
+         }
+      }//end for(i)
+   return perm;
+   }
 
 void randomize_support(u32bit n, std::vector<gf2m> & L, RandomNumberGenerator & rng)
    {

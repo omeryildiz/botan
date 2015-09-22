@@ -11,10 +11,8 @@
 
 #include <botan/mceliece.h>
 #include <botan/mceliece_key.h>
-#include <botan/internal/code_based_key_gen.h>
-#include <botan/polyn_gf2m.h>
-#include <botan/code_based_util.h>
-#include <botan/goppa_code.h>
+#include <botan/internal/code_based_util.h>
+#include <botan/internal/goppa_code.h>
 #include <botan/internal/bit_ops.h>
 
 namespace Botan {
